@@ -1085,38 +1085,43 @@ function toggleFavorite(promptId) {
     const prompt = promptDataManager.getPromptById(promptId);
     if (!prompt) return;
 
-    const isCurrentlyFavorited = favoritesManager.isInFavorites(promptId);
-
     try {
-        if (isCurrentlyFavorited) {
-            favoritesManager.removeFromFavorites(promptId);
-            showMessage('已从收藏中移除');
-        } else {
-            favoritesManager.addToFavorites(prompt);
-            showMessage('已添加到收藏');
-        }
+        // 使用全局函数切换收藏状态
+        const result = window.toggleFavorite(prompt);
         
-        // 更新UI
-        document.querySelectorAll(`.prompt-card[data-id="${promptId}"] .favorite-btn`).forEach(btn => {
-            btn.classList.toggle('active');
+        if (result) {
+            const isCurrentlyFavorited = window.isFavorite(promptId);
             
-            if (btn.classList.contains('active')) {
-                btn.innerHTML = '<i class="fas fa-star"></i> 已收藏';
-                btn.title = '取消收藏';
+            // 显示操作结果提示
+            if (isCurrentlyFavorited) {
+                showMessage('已添加到收藏');
             } else {
-                btn.innerHTML = '<i class="fas fa-star"></i> 收藏';
-                btn.title = '添加到收藏';
+                showMessage('已从收藏中移除');
             }
-        });
-        
-        // 如果在收藏页面，需要重新渲染
-        if (currentPage === 'favorites') {
-            favoritesManager.updateFavoritesUI();
+            
+            // 更新UI
+            document.querySelectorAll(`.prompt-card[data-id="${promptId}"] .favorite-btn`).forEach(btn => {
+                if (isCurrentlyFavorited) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '<i class="fas fa-star"></i> 已收藏';
+                    btn.title = '取消收藏';
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<i class="far fa-star"></i> 收藏';
+                    btn.title = '添加到收藏';
+                }
+            });
+            
+            // 如果在收藏页面，需要重新渲染
+            if (currentPage === 'favorites') {
+                window.favoritesManager.updateFavoritesUI();
+            }
+            
+            // 更新统计信息
+            updateStats();
+        } else {
+            showError('收藏操作失败');
         }
-        
-        // 更新统计信息
-        updateStats();
-        
     } catch (error) {
         console.error('收藏操作失败:', error);
         showError('操作失败，请重试');
