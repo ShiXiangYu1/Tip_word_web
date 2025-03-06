@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI提示词收藏 - 你的AI提示词助手</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="light-theme">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="index.html">AI提示词收藏</a>
+                <button class="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="navbar-menu">
+                <ul class="navbar-nav">
+                    <li class="nav-item active"><a href="#home">首页</a></li>
+                    <li class="nav-item"><a href="#categories">分类</a></li>
+                    <li class="nav-item"><a href="#favorites">收藏</a></li>
+                    <li class="nav-item"><a href="#about">关于</a></li>
+                </ul>
+                <div class="theme-toggle">
+                    <button class="theme-btn light-theme-btn active" title="浅色模式">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button class="theme-btn dark-theme-btn" title="深色模式">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 移动端菜单 -->
+    <div class="mobile-menu">
+        <ul class="mobile-nav">
+            <li class="mobile-nav-item active"><a href="#home">首页</a></li>
+            <li class="mobile-nav-item"><a href="#categories">分类</a></li>
+            <li class="mobile-nav-item"><a href="#favorites">收藏</a></li>
+            <li class="mobile-nav-item"><a href="#about">关于</a></li>
+        </ul>
+    </div>
+
+    <!-- 主要内容 -->
+    <main class="main">
+        <!-- 首页内容 -->
+        <div id="home" class="page-content active">
+            <!-- 英雄区域 -->
+            <div class="hero-section">
+                <h1>AI提示词收藏</h1>
+                <p class="subtitle">精选高质量AI提示词，助你提高工作效率</p>
+                <div class="search-container">
+                    <input type="text" id="hero-search" placeholder="搜索提示词...">
+                    <button type="button" id="hero-search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 热门分类 -->
+            <section class="popular-categories">
+                <h2>热门分类</h2>
+                <div class="category-grid">
+                    <!-- 热门分类将通过JavaScript动态加载 -->
+                </div>
+            </section>
+
+            <!-- 最新提示词 -->
+            <section class="latest-prompts">
+                <h2>最新提示词</h2>
+                <div class="prompts-grid">
+                    <!-- 最新提示词将通过JavaScript动态加载 -->
+                </div>
+            </section>
+
+            <!-- 统计信息 -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-list"></i>
+                        <h3>总提示词数</h3>
+                        <p class="stat-number" id="total-prompts">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-tags"></i>
+                        <h3>分类数量</h3>
+                        <p class="stat-number" id="total-categories">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-star"></i>
+                        <h3>收藏次数</h3>
+                        <p class="stat-number" id="total-favorites">0</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 分类页面 -->
+        <div id="categories" class="page-content">
+            <div class="category-layout">
+                <!-- 左侧分类栏 -->
+                <div class="category-sidebar">
+                    <h2>所有分类</h2>
+                    <div class="category-search">
+                        <input type="text" placeholder="搜索分类..." id="category-search-input">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="category-list-container">
+                        <ul id="category-list" class="category-list-sidebar">
+                            <!-- 分类列表将通过 JavaScript 动态加载 -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 右侧内容区 -->
+                <div class="content-area">
+                    <div class="search-bar">
+                        <div class="search-container">
+                            <input type="text" id="prompt-search" placeholder="搜索提示词...">
+                            <button type="button" id="search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="prompts-grid">
+                        <!-- 提示词卡片将通过 JavaScript 动态加载 -->
+                        <div class="loading">加载中</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 收藏页面 -->
+        <div id="favorites" class="page-content">
+            <div class="favorites-container">
+                <h2>我的收藏</h2>
+                <div class="prompts-grid">
+                    <!-- 收藏的提示词将通过 JavaScript 动态加载 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 关于页面 -->
+        <div id="about" class="page-content">
+            <div class="about-container">
+                <h2>关于我们</h2>
+                <div class="about-content">
+                    <p>AI提示词收藏是一个帮助用户收集、整理和管理AI提示词的平台。我们的目标是让每个人都能更好地使用AI工具，提高工作效率。</p>
+                    <h3>主要功能</h3>
+                    <ul>
+                        <li>提供精选的AI提示词</li>
+                        <li>按分类浏览提示词</li>
+                        <li>收藏喜欢的提示词</li>
+                        <li>搜索特定提示词</li>
+                        <li>一键复制提示词</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 提示词详情模态框 -->
+    <div id="prompt-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-category">
+                    <span>分类：</span>
+                    <span id="modal-category"></span>
+                </div>
+                <div class="modal-description">
+                    <h3>提示词内容：</h3>
+                    <div id="modal-content"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-favorite-btn" class="btn">
+                    <i class="far fa-heart"></i> 收藏
+                </button>
+                <!-- 复制按钮将由JavaScript动态添加 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/favorites.js"></script>
+    <script src="js/prompt-details.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 

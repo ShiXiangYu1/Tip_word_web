@@ -1,0 +1,740 @@
+{
+  "categories": [
+    {
+      "name": "TypeScript",
+      "id": "typescript"
+    },
+    {
+      "name": "Python",
+      "id": "python"
+    },
+    {
+      "name": "React",
+      "id": "react"
+    },
+    {
+      "name": "Next.js",
+      "id": "next_js"
+    },
+    {
+      "name": "PHP",
+      "id": "php"
+    },
+    {
+      "name": "TailwindCSS",
+      "id": "tailwindcss"
+    },
+    {
+      "name": "Laravel",
+      "id": "laravel"
+    },
+    {
+      "name": "C#",
+      "id": "c_"
+    },
+    {
+      "name": "JavaScript",
+      "id": "javascript"
+    },
+    {
+      "name": "Game Development",
+      "id": "game_development"
+    },
+    {
+      "name": "Expo",
+      "id": "expo"
+    },
+    {
+      "name": "React Native",
+      "id": "react_native"
+    },
+    {
+      "name": "Tailwind",
+      "id": "tailwind"
+    },
+    {
+      "name": "Vite",
+      "id": "vite"
+    },
+    {
+      "name": "Supabase",
+      "id": "supabase"
+    },
+    {
+      "name": "Rust",
+      "id": "rust"
+    },
+    {
+      "name": "Web Development",
+      "id": "web_development"
+    },
+    {
+      "name": "Flutter",
+      "id": "flutter"
+    },
+    {
+      "name": "API",
+      "id": "api"
+    },
+    {
+      "name": "Meta-Prompt",
+      "id": "meta_prompt"
+    },
+    {
+      "name": "SvelteKit",
+      "id": "sveltekit"
+    },
+    {
+      "name": "SwiftUI",
+      "id": "swiftui"
+    },
+    {
+      "name": "Swift",
+      "id": "swift"
+    },
+    {
+      "name": "WordPress",
+      "id": "wordpress"
+    },
+    {
+      "name": "Angular",
+      "id": "angular"
+    },
+    {
+      "name": "Blockchain",
+      "id": "blockchain"
+    },
+    {
+      "name": "html",
+      "id": "html"
+    },
+    {
+      "name": "Backend Development",
+      "id": "backend_development"
+    },
+    {
+      "name": "Unity",
+      "id": "unity"
+    },
+    {
+      "name": "FastAPI",
+      "id": "fastapi"
+    },
+    {
+      "name": "GraphQL",
+      "id": "graphql"
+    },
+    {
+      "name": "Alpine.js",
+      "id": "alpine_js"
+    },
+    {
+      "name": "Accessibility",
+      "id": "accessibility"
+    },
+    {
+      "name": "ionic",
+      "id": "ionic"
+    },
+    {
+      "name": "cordova",
+      "id": "cordova"
+    },
+    {
+      "name": "angular",
+      "id": "angular"
+    },
+    {
+      "name": "Java",
+      "id": "java"
+    },
+    {
+      "name": "Vue.js",
+      "id": "vue_js"
+    },
+    {
+      "name": "Zod",
+      "id": "zod"
+    },
+    {
+      "name": "Zustand",
+      "id": "zustand"
+    },
+    {
+      "name": "NestJs",
+      "id": "nestjs"
+    },
+    {
+      "name": "Node",
+      "id": "node"
+    },
+    {
+      "name": "NuxtJS",
+      "id": "nuxtjs"
+    },
+    {
+      "name": "Vue",
+      "id": "vue"
+    },
+    {
+      "name": "Function",
+      "id": "function"
+    },
+    {
+      "name": "Svelte",
+      "id": "svelte"
+    },
+    {
+      "name": "Terraform",
+      "id": "terraform"
+    },
+    {
+      "name": "Vivado",
+      "id": "vivado"
+    },
+    {
+      "name": "FPGA",
+      "id": "fpga"
+    },
+    {
+      "name": "Node.js",
+      "id": "node_js"
+    },
+    {
+      "name": "AL",
+      "id": "al"
+    },
+    {
+      "name": "Business Central",
+      "id": "business_central"
+    },
+    {
+      "name": "android",
+      "id": "android"
+    },
+    {
+      "name": "kotlin",
+      "id": "kotlin"
+    },
+    {
+      "name": "Astro",
+      "id": "astro"
+    },
+    {
+      "name": "AutoHotkey",
+      "id": "autohotkey"
+    },
+    {
+      "name": "Blazor",
+      "id": "blazor"
+    },
+    {
+      "name": "ASP.NET Core",
+      "id": "asp_net_core"
+    },
+    {
+      "name": "Cosmos",
+      "id": "cosmos"
+    },
+    {
+      "name": "CosmWasm",
+      "id": "cosmwasm"
+    },
+    {
+      "name": "IBC",
+      "id": "ibc"
+    },
+    {
+      "name": "bootstrap",
+      "id": "bootstrap"
+    },
+    {
+      "name": "Chrome Extension",
+      "id": "chrome_extension"
+    },
+    {
+      "name": "Browser API",
+      "id": "browser_api"
+    },
+    {
+      "name": "Convex",
+      "id": "convex"
+    },
+    {
+      "name": "cpp",
+      "id": "cpp"
+    },
+    {
+      "name": "c++",
+      "id": "c__"
+    },
+    {
+      "name": "Data Analyst",
+      "id": "data_analyst"
+    },
+    {
+      "name": "Jupyter",
+      "id": "jupyter"
+    },
+    {
+      "name": "Deep Learning",
+      "id": "deep_learning"
+    },
+    {
+      "name": "PyTorch",
+      "id": "pytorch"
+    },
+    {
+      "name": "Transformer",
+      "id": "transformer"
+    },
+    {
+      "name": "LLM",
+      "id": "llm"
+    },
+    {
+      "name": "Diffusion",
+      "id": "diffusion"
+    },
+    {
+      "name": "devops",
+      "id": "devops"
+    },
+    {
+      "name": "kubernetes",
+      "id": "kubernetes"
+    },
+    {
+      "name": "azure",
+      "id": "azure"
+    },
+    {
+      "name": "python",
+      "id": "python"
+    },
+    {
+      "name": "bash",
+      "id": "bash"
+    },
+    {
+      "name": "ansible",
+      "id": "ansible"
+    },
+    {
+      "name": "Django",
+      "id": "django"
+    },
+    {
+      "name": ".NET",
+      "id": "_net"
+    },
+    {
+      "name": "Elixir",
+      "id": "elixir"
+    },
+    {
+      "name": "Phoenix",
+      "id": "phoenix"
+    },
+    {
+      "name": "elixir",
+      "id": "elixir"
+    },
+    {
+      "name": "phoenix",
+      "id": "phoenix"
+    },
+    {
+      "name": "ex",
+      "id": "ex"
+    },
+    {
+      "name": "Microservices",
+      "id": "microservices"
+    },
+    {
+      "name": "Serverless",
+      "id": "serverless"
+    },
+    {
+      "name": "Fastify",
+      "id": "fastify"
+    },
+    {
+      "name": "typescript",
+      "id": "typescript"
+    },
+    {
+      "name": "Flask",
+      "id": "flask"
+    },
+    {
+      "name": "Gatsby",
+      "id": "gatsby"
+    },
+    {
+      "name": "Ghost",
+      "id": "ghost"
+    },
+    {
+      "name": "Global",
+      "id": "global"
+    },
+    {
+      "name": "Go",
+      "id": "go"
+    },
+    {
+      "name": "Golang",
+      "id": "golang"
+    },
+    {
+      "name": "net/http",
+      "id": "net_http"
+    },
+    {
+      "name": "HTML",
+      "id": "html"
+    },
+    {
+      "name": "CSS",
+      "id": "css"
+    },
+    {
+      "name": "Responsive Design",
+      "id": "responsive_design"
+    },
+    {
+      "name": "htmx",
+      "id": "htmx"
+    },
+    {
+      "name": "firebase",
+      "id": "firebase"
+    },
+    {
+      "name": "firestore",
+      "id": "firestore"
+    },
+    {
+      "name": "Spring",
+      "id": "spring"
+    },
+    {
+      "name": "Spring-Boot",
+      "id": "spring_boot"
+    },
+    {
+      "name": "Quarkus",
+      "id": "quarkus"
+    },
+    {
+      "name": "Jakarta EE",
+      "id": "jakarta_ee"
+    },
+    {
+      "name": "MicroProfile",
+      "id": "microprofile"
+    },
+    {
+      "name": "GraalVM",
+      "id": "graalvm"
+    },
+    {
+      "name": "Vert.x",
+      "id": "vert_x"
+    },
+    {
+      "name": "JAX",
+      "id": "jax"
+    },
+    {
+      "name": "Machine Learning",
+      "id": "machine_learning"
+    },
+    {
+      "name": "Julia",
+      "id": "julia"
+    },
+    {
+      "name": "DataScience",
+      "id": "datascience"
+    },
+    {
+      "name": "Franework",
+      "id": "franework"
+    },
+    {
+      "name": "Livewire",
+      "id": "livewire"
+    },
+    {
+      "name": "DaisyUI",
+      "id": "daisyui"
+    },
+    {
+      "name": "Lua",
+      "id": "lua"
+    },
+    {
+      "name": "Scripting",
+      "id": "scripting"
+    },
+    {
+      "name": "Critique",
+      "id": "critique"
+    },
+    {
+      "name": "Reflection",
+      "id": "reflection"
+    },
+    {
+      "name": "Trajectory Analysis",
+      "id": "trajectory_analysis"
+    },
+    {
+      "name": "WebShop",
+      "id": "webshop"
+    },
+    {
+      "name": "Acting",
+      "id": "acting"
+    },
+    {
+      "name": "Tamagui",
+      "id": "tamagui"
+    },
+    {
+      "name": "Monorepo",
+      "id": "monorepo"
+    },
+    {
+      "name": "Solito",
+      "id": "solito"
+    },
+    {
+      "name": "i18n",
+      "id": "i18n"
+    },
+    {
+      "name": "Stripe",
+      "id": "stripe"
+    },
+    {
+      "name": "@app/common",
+      "id": "_app_common"
+    },
+    {
+      "name": "Redux",
+      "id": "redux"
+    },
+    {
+      "name": "Viem v2",
+      "id": "viem_v2"
+    },
+    {
+      "name": "Wagmi v2",
+      "id": "wagmi_v2"
+    },
+    {
+      "name": "Standard.js",
+      "id": "standard_js"
+    },
+    {
+      "name": "Radix UI",
+      "id": "radix_ui"
+    },
+    {
+      "name": "Shadcn UI",
+      "id": "shadcn_ui"
+    },
+    {
+      "name": "OnchainKit",
+      "id": "onchainkit"
+    },
+    {
+      "name": "Typescript",
+      "id": "typescript"
+    },
+    {
+      "name": "Pixi.js",
+      "id": "pixi_js"
+    },
+    {
+      "name": "Web",
+      "id": "web"
+    },
+    {
+      "name": "Mobile",
+      "id": "mobile"
+    },
+    {
+      "name": "Testing",
+      "id": "testing"
+    },
+    {
+      "name": "Ruby",
+      "id": "ruby"
+    },
+    {
+      "name": "Rails",
+      "id": "rails"
+    },
+    {
+      "name": "Tailwind CSS",
+      "id": "tailwind_css"
+    },
+    {
+      "name": "three.js",
+      "id": "three_js"
+    },
+    {
+      "name": "React three fiber",
+      "id": "react_three_fiber"
+    },
+    {
+      "name": "Remix",
+      "id": "remix"
+    },
+    {
+      "name": "RoboCorp",
+      "id": "robocorp"
+    },
+    {
+      "name": "async",
+      "id": "async"
+    },
+    {
+      "name": "channel",
+      "id": "channel"
+    },
+    {
+      "name": "mpsc",
+      "id": "mpsc"
+    },
+    {
+      "name": "Salesforce",
+      "id": "salesforce"
+    },
+    {
+      "name": "SFDX",
+      "id": "sfdx"
+    },
+    {
+      "name": "Force.com",
+      "id": "force_com"
+    },
+    {
+      "name": "Solana",
+      "id": "solana"
+    },
+    {
+      "name": "Anchor",
+      "id": "anchor"
+    },
+    {
+      "name": "Web3.js",
+      "id": "web3_js"
+    },
+    {
+      "name": "Metaplex",
+      "id": "metaplex"
+    },
+    {
+      "name": "Solidity",
+      "id": "solidity"
+    },
+    {
+      "name": "Smart Contracts",
+      "id": "smart_contracts"
+    },
+    {
+      "name": "Ethereum",
+      "id": "ethereum"
+    },
+    {
+      "name": "Paraglide.js",
+      "id": "paraglide_js"
+    },
+    {
+      "name": "COT",
+      "id": "cot"
+    },
+    {
+      "name": "Tauri",
+      "id": "tauri"
+    },
+    {
+      "name": "Cross-Platform Desktop App",
+      "id": "cross_platform_desktop_app"
+    },
+    {
+      "name": "Technical Writing",
+      "id": "technical_writing"
+    },
+    {
+      "name": "Developer Content",
+      "id": "developer_content"
+    },
+    {
+      "name": "Tutorials",
+      "id": "tutorials"
+    },
+    {
+      "name": "Cloud",
+      "id": "cloud"
+    },
+    {
+      "name": "Infrastructure as Code",
+      "id": "infrastructure_as_code"
+    },
+    {
+      "name": "UI",
+      "id": "ui"
+    },
+    {
+      "name": "UX",
+      "id": "ux"
+    },
+    {
+      "name": "Design",
+      "id": "design"
+    },
+    {
+      "name": "SystemVerilog",
+      "id": "systemverilog"
+    },
+    {
+      "name": "Timing Optimization",
+      "id": "timing_optimization"
+    },
+    {
+      "name": "Synthesis",
+      "id": "synthesis"
+    },
+    {
+      "name": "AXI",
+      "id": "axi"
+    },
+    {
+      "name": "High-Performance",
+      "id": "high_performance"
+    },
+    {
+      "name": "DMA",
+      "id": "dma"
+    },
+    {
+      "name": "Web Scraping",
+      "id": "web_scraping"
+    },
+    {
+      "name": "Jina AI",
+      "id": "jina_ai"
+    },
+    {
+      "name": "WooCommerce",
+      "id": "woocommerce"
+    }
+  ]
+}

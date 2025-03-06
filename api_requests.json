@@ -1,0 +1,23 @@
+[
+  {
+    "url": "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap",
+    "method": "GET",
+    "headers": {
+      "accept-language": "zh-CN",
+      "referer": "https://anaitsc.xiaofeipandian.cn/",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      "accept": "text/css,*/*;q=0.1"
+    }
+  },
+  {
+    "url": "https://anaitsc.xiaofeipandian.cn/data/rules_bilingual.json",
+    "method": "GET",
+    "headers": {
+      "accept-language": "zh-CN",
+      "referer": "https://anaitsc.xiaofeipandian.cn/categories.html",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      "accept": "*/*",
+      "cookie": "X_CACHE_KEY=fe49a42cf3616e41bd61a6b3faa60429"
+    }
+  }
+]
