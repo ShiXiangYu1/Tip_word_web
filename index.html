@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/modal-fix.css?v=1.0.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -30,6 +31,7 @@
                     <li class="nav-item"><a href="#categories">分类</a></li>
                     <li class="nav-item"><a href="#favorites">收藏</a></li>
                     <li class="nav-item"><a href="#about">关于</a></li>
+                    <li class="nav-item"><a href="#" class="reload-btn"><i class="fas fa-sync-alt"></i> 刷新数据</a></li>
                 </ul>
                 <div class="theme-toggle">
                     <button class="theme-btn light-theme-btn active" title="浅色模式">
@@ -50,6 +52,7 @@
             <li class="mobile-nav-item"><a href="#categories">分类</a></li>
             <li class="mobile-nav-item"><a href="#favorites">收藏</a></li>
             <li class="mobile-nav-item"><a href="#about">关于</a></li>
+            <li class="mobile-nav-item"><a href="#" class="reload-btn"><i class="fas fa-sync-alt"></i> 刷新数据</a></li>
         </ul>
     </div>
 
@@ -179,28 +182,43 @@
                 <h2 id="modal-title"></h2>
                 <span class="modal-close">&times;</span>
             </div>
+            <div class="modal-category">
+                <span>分类：</span>
+                <span id="modal-category"></span>
+            </div>
             <div class="modal-body">
-                <div class="modal-category">
-                    <span>分类：</span>
-                    <span id="modal-category"></span>
+                <!-- 中文内容部分 -->
+                <div class="content-section" id="section-zh">
+                    <div class="section-title">中文</div>
+                    <div class="content-text zh-content" id="content-zh"></div>
                 </div>
-                <div class="modal-description">
-                    <h3>提示词内容：</h3>
-                    <div id="modal-content"></div>
+                
+                <!-- 英文内容部分 -->
+                <div class="content-section" id="section-en">
+                    <div class="section-title">English (英文)</div>
+                    <div class="content-text en-content" id="content-en"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="modal-favorite-btn" class="btn">
+                <button id="modal-favorite-btn" class="btn btn-primary">
                     <i class="far fa-heart"></i> 收藏
                 </button>
-                <!-- 复制按钮将由JavaScript动态添加 -->
+                <div class="copy-btn-group">
+                    <button id="copy-zh-btn" class="btn btn-primary">
+                        <i class="fas fa-copy"></i> 复制中文
+                    </button>
+                    <button id="copy-en-btn" class="btn btn-primary">
+                        <i class="fas fa-copy"></i> 复制英文
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="js/data.js"></script>
-    <script src="js/favorites.js"></script>
-    <script src="js/prompt-details.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/data.js?v=1.0.7"></script>
+    <script src="js/favorites.js?v=1.0.1"></script>
+    <script src="js/prompt-details.js?v=1.0.11"></script>
+    <script src="js/main.js?v=1.0.2"></script>
+    <script src="js/test-bilingual.js?v=1.0.1"></script>
 </body>
 </html> 

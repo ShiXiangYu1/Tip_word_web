@@ -3,6 +3,8 @@ class PromptDataManager {
     constructor() {
         this.prompts = [];
         this.categories = [];
+        this.bilingualPrompts = {}; // 添加双语数据存储
+        this.bilingualZhPrompts = {}; // 新增：中文内容的映射
         this.isLoading = false;
         this.lastUpdated = null;
         this.loadError = null;
@@ -31,8 +33,13 @@ class PromptDataManager {
                 setTimeout(() => reject(new Error('加载超时')), 10000);
             });
             
+            // 添加时间戳参数防止缓存
+            const timestamp = new Date().getTime();
+            const url = `data/prompts.json?t=${timestamp}`;
+            console.log('正在请求最新数据:', url);
+            
             // 数据请求
-            const fetchPromise = fetch('data/prompts.json');
+            const fetchPromise = fetch(url);
             
             // 竞态Promise，哪个先完成就用哪个结果
             const response = await Promise.race([fetchPromise, timeoutPromise]);
@@ -42,14 +49,17 @@ class PromptDataManager {
             }
             
             const data = await response.json();
+            console.log('prompts.json数据加载成功, 数据类型:', typeof data);
             
             // 处理两种可能的数据结构
             if (Array.isArray(data)) {
                 // 如果数据是数组格式
                 this.prompts = this.normalizePrompts(data);
+                console.log(`规范化后的prompts数据数量: ${this.prompts.length}`);
             } else if (data.prompts && Array.isArray(data.prompts)) {
                 // 如果数据有prompts属性
                 this.prompts = this.normalizePrompts(data.prompts);
+                console.log(`规范化后的prompts数据数量: ${this.prompts.length}`);
             } else {
                 throw new Error('数据格式不正确');
             }
@@ -57,6 +67,11 @@ class PromptDataManager {
             // 提取所有分类
             this.categories = this.extractCategories(this.prompts);
             this.lastUpdated = new Date();
+            
+            // 加载双语数据 - 确保在prompts加载后再加载
+            console.log('prompts数据加载完成，开始加载双语数据...');
+            const bilingualResult = await this.loadBilingualData();
+            console.log('双语数据加载结果:', bilingualResult ? '成功' : '失败');
             
             this.isLoading = false;
             return true;
@@ -89,6 +104,211 @@ class PromptDataManager {
             
             this.isLoading = false;
             return true; // 返回true因为我们有回退数据
+        }
+    }
+    
+    // 加载双语数据
+    async loadBilingualData() {
+        try {
+            console.log('正在加载双语数据...');
+            
+            // 添加时间戳参数防止缓存
+            const timestamp = new Date().getTime();
+            const url = `data/rules_bilingual.json?t=${timestamp}`;
+            console.log('正在请求最新双语数据:', url);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态码: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('双语数据加载成功，数据类型:', typeof data, '是否为数组:', Array.isArray(data), '数据长度:', Array.isArray(data) ? data.length : 0);
+            
+            // 检查一下内容示例
+            if (Array.isArray(data) && data.length > 0) {
+                const first = data[0];
+                console.log('第一项的字段:', Object.keys(first));
+                console.log('content_en字段存在:', !!first.content_en);
+                console.log('content_en_zh字段存在:', !!first.content_en_zh);
+                console.log('content字段存在:', !!first.content);
+                console.log('content_zh字段存在:', !!first.content_zh);
+                
+                // 优先使用的字段
+                const preferredEnField = first.content_en ? 'content_en' : 'content';
+                const preferredZhField = first.content_en_zh ? 'content_en_zh' : 'content_zh';
+                console.log(`将优先使用 ${preferredEnField} 作为英文字段，${preferredZhField} 作为中文字段`);
+            }
+            
+            // 清空现有数据
+            this.bilingualPrompts = {};
+            this.bilingualZhPrompts = {}; // 新增：中文内容的映射
+            
+            // 处理rules_bilingual.json中的数据
+            if (Array.isArray(data)) {
+                // 主要存储：基于索引的ID映射
+                data.forEach((item, index) => {
+                    const id = String(index + 1);
+                    
+                    // 存储英文内容 - 优先使用content_en字段
+                    let englishContent = null;
+                    if (item?.content_en) {
+                        englishContent = item.content_en;
+                        console.log(`使用content_en字段作为ID ${id} 的英文内容`);
+                    } else if (item?.content) {
+                        // 验证是否为英文
+                        const sample = item.content.substring(0, 50);
+                        const englishChars = sample.replace(/[^a-zA-Z]/g, '').length;
+                        const ratio = englishChars / sample.length;
+                        
+                        if (ratio > 0.6) {
+                            englishContent = item.content;
+                            console.log(`使用content字段作为ID ${id} 的英文内容`);
+                        }
+                    }
+                    
+                    if (englishContent) {
+                        this.bilingualPrompts[id] = englishContent;
+                        console.log(`加载ID为${id}的英文内容成功，内容前20个字符:`, englishContent.substring(0, 20));
+                    }
+                    
+                    // 存储中文内容 - 优先使用content_en_zh字段
+                    let chineseContent = null;
+                    if (item?.content_en_zh) {
+                        chineseContent = item.content_en_zh;
+                        console.log(`使用content_en_zh字段作为ID ${id} 的中文内容`);
+                    } else if (item?.content_zh) {
+                        chineseContent = item.content_zh;
+                        console.log(`使用content_zh字段作为ID ${id} 的中文内容`);
+                    }
+                    
+                    if (chineseContent) {
+                        this.bilingualZhPrompts[id] = chineseContent;
+                        console.log(`加载ID为${id}的中文内容成功，内容前20个字符:`, chineseContent.substring(0, 20));
+                    }
+                    
+                    // 创建额外映射：通过中文内容前20个字符作为键
+                    if (englishContent && chineseContent) {
+                        const zhContentKey = 'zhcontent_' + chineseContent.substring(0, 20).replace(/\s+/g, '');
+                        this.bilingualPrompts[zhContentKey] = englishContent;
+                        console.log(`通过中文内容创建额外英文映射:`, zhContentKey);
+                    }
+                });
+                
+                // 如果有prompts数据，尝试直接匹配
+                if (this.prompts && this.prompts.length > 0) {
+                    console.log('尝试直接匹配现有的prompts数据...');
+                    this.prompts.forEach(prompt => {
+                        if (prompt && prompt.content) {
+                            // 提示：在双语数据中匹配中文内容
+                            const matchingItem = data.find(item => {
+                                // 优先匹配content_en_zh，其次是content_zh
+                                const zhContent = item?.content_en_zh || item?.content_zh;
+                                return zhContent && zhContent.substring(0, 30) === prompt.content.substring(0, 30);
+                            });
+                            
+                            if (matchingItem) {
+                                const promptId = String(prompt.id);
+                                // 存储英文内容
+                                const englishContent = matchingItem.content_en || matchingItem.content;
+                                if (englishContent) {
+                                    this.bilingualPrompts[promptId] = englishContent;
+                                    console.log(`通过内容匹配成功设置ID ${promptId} 的英文内容`);
+                                }
+                                
+                                // 存储中文内容
+                                const chineseContent = matchingItem.content_en_zh || matchingItem.content_zh;
+                                if (chineseContent) {
+                                    this.bilingualZhPrompts[promptId] = chineseContent;
+                                    console.log(`通过内容匹配成功设置ID ${promptId} 的中文内容`);
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.error('双语数据格式不正确，期望数组格式但得到:', typeof data);
+            }
+            
+            console.log(`成功加载${Object.keys(this.bilingualPrompts).length}条英文内容，${Object.keys(this.bilingualZhPrompts).length}条中文内容`);
+            
+            return true;
+        } catch (error) {
+            console.error('加载双语数据失败:', error);
+            return false;
+        }
+    }
+    
+    // 获取英文提示词内容
+    getEnglishContent(promptId) {
+        if (!promptId) {
+            console.log('获取英文内容失败: 未提供promptId');
+            return '';
+        }
+        
+        try {
+            console.log(`尝试获取ID为${promptId}的英文内容`);
+            
+            // 尝试直接通过ID获取
+            let englishContent = this.bilingualPrompts[promptId];
+            
+            // 如果找不到，尝试通过prompt的中文内容查找
+            if (!englishContent) {
+                console.log(`未找到ID为${promptId}的英文内容，尝试其他匹配方法`);
+                
+                // 尝试找到对应的prompt
+                const prompt = this.getPromptById(promptId);
+                if (prompt && prompt.content) {
+                    // 通过中文内容前20个字符作为键
+                    const zhContentKey = 'zhcontent_' + prompt.content.substring(0, 20).replace(/\s+/g, '');
+                    englishContent = this.bilingualPrompts[zhContentKey];
+                    
+                    if (englishContent) {
+                        console.log(`通过中文内容前20个字符匹配成功:`, zhContentKey);
+                    } else {
+                        console.log(`通过中文内容前20个字符匹配失败:`, zhContentKey);
+                    }
+                }
+            }
+            
+            if (englishContent) {
+                console.log(`成功获取ID为${promptId}的英文内容，内容前20个字符:`, englishContent.substring(0, 20));
+                return englishContent;
+            } else {
+                // 如果找不到对应的英文内容，返回空字符串
+                console.log(`未找到ID为${promptId}的英文内容，已尝试所有匹配方法`);
+                return '';
+            }
+        } catch (error) {
+            console.error('获取英文内容失败:', error);
+            return '';
+        }
+    }
+    
+    // 获取中文提示词内容（新增方法）
+    getChineseContent(promptId) {
+        if (!promptId) {
+            console.log('获取中文内容失败: 未提供promptId');
+            return '';
+        }
+        
+        try {
+            console.log(`尝试获取ID为${promptId}的中文内容`);
+            
+            // 尝试直接通过ID获取
+            const chineseContent = this.bilingualZhPrompts[promptId];
+            
+            if (chineseContent) {
+                console.log(`成功获取ID为${promptId}的中文内容，内容前20个字符:`, chineseContent.substring(0, 20));
+                return chineseContent;
+            } else {
+                console.log(`未找到ID为${promptId}的中文内容`);
+                return '';
+            }
+        } catch (error) {
+            console.error('获取中文内容失败:', error);
+            return '';
         }
     }
 
@@ -254,3 +474,6 @@ class PromptDataManager {
 
 // 导出数据管理器实例
 const promptDataManager = new PromptDataManager(); 
+
+// 将实例挂载到window对象，使其在全局范围内可用
+window.promptDataManager = promptDataManager; 

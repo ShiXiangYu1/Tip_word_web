@@ -1023,6 +1023,24 @@ function setupEventListeners() {
             }
         }
     });
+
+    // 添加刷新按钮事件处理
+    const reloadButtons = document.querySelectorAll('.reload-btn');
+    reloadButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            reloadData();
+        });
+    });
+
+    // 添加F5键刷新数据功能
+    document.addEventListener('keydown', function(e) {
+        // 如果按下的是F5键
+        if (e.key === 'F5') {
+            e.preventDefault(); // 阻止默认刷新行为
+            reloadData();
+        }
+    });
 }
 
 // 处理分类搜索
@@ -1239,4 +1257,28 @@ function showError(message) {
             document.body.removeChild(errorElement);
         }, 300);
     }, 3000);
+}
+
+// 重新加载数据
+function reloadData() {
+    showLoadingIndicator();
+    
+    // 清空现有数据
+    document.querySelector('.prompts-grid').innerHTML = '';
+    
+    // 重新加载数据
+    promptDataManager.loadPrompts().then(() => {
+        // 重新渲染数据
+        renderCategories();
+        renderPopularCategories();
+        renderLatestPrompts();
+        updateStats();
+        
+        hideLoadingIndicator();
+        showToast('数据已重新加载');
+    }).catch(error => {
+        console.error('重新加载数据失败:', error);
+        hideLoadingIndicator();
+        showToast('加载失败，请重试');
+    });
 } 
