@@ -37,6 +37,17 @@ async function initializePage() {
         // 加载提示词数据
         await promptDataManager.loadPrompts();
         
+        // 确保收藏管理器已初始化
+        if (!window.favoritesManager) {
+            console.warn('收藏管理器未初始化，正在尝试初始化...');
+            if (typeof FavoritesManager === 'function') {
+                window.favoritesManager = new FavoritesManager();
+                console.log('收藏管理器已手动初始化');
+            } else {
+                console.error('无法初始化收藏管理器，相关类不存在');
+            }
+        }
+        
         // 渲染分类
         renderCategories();
         
@@ -58,8 +69,17 @@ async function initializePage() {
         // 初始化主题
         initializeTheme();
         
-        // 初始化收藏内容
-        favoritesManager.updateFavoritesUI();
+        // 检查收藏管理器
+        if (window.favoritesManager && typeof window.favoritesManager.updateFavoritesUI === 'function') {
+            // 初始化收藏内容
+            try {
+                window.favoritesManager.updateFavoritesUI();
+            } catch (error) {
+                console.error('初始化收藏内容失败:', error);
+            }
+        } else {
+            console.error('收藏管理器不可用，无法初始化收藏内容');
+        }
         
         isLoadingData = false;
         hideLoadingIndicator();
@@ -207,7 +227,8 @@ function renderLatestPrompts() {
 
 // 创建提示词卡片
 function createPromptCard(prompt) {
-    console.log('创建提示词卡片:', prompt.id, prompt.title || prompt.name || prompt.category);
+    // 记录正在创建哪个提示词的卡片
+    console.log('创建提示词卡片:', prompt.id, prompt.prompt_name);
     
     const card = document.createElement('div');
     card.className = 'prompt-card';
@@ -218,11 +239,21 @@ function createPromptCard(prompt) {
     title.textContent = prompt.title || prompt.name || prompt.category || '未命名提示词';
     card.appendChild(title);
     
-    // 内容预览
-    const previewContent = prompt.content_zh || prompt.zh_content || prompt.content_en || prompt.en_content || prompt.content || prompt.text || '';
+    // 内容预览 - 优先显示中文内容
+    const previewContent = prompt.content_zh || prompt.zh_content || prompt.content || '';
     const preview = document.createElement('div');
     preview.className = 'card-preview';
     preview.textContent = previewContent.length > 100 ? previewContent.substring(0, 100) + '...' : previewContent;
+    
+    // 如果有英文内容，添加标记
+    if (prompt.content_en || prompt.en_content) {
+        const bilingualBadge = document.createElement('span');
+        bilingualBadge.className = 'bilingual-badge';
+        bilingualBadge.innerHTML = '<i class="fas fa-language"></i>';
+        bilingualBadge.title = '包含中英文内容';
+        preview.appendChild(bilingualBadge);
+    }
+    
     card.appendChild(preview);
     
     // 分类标签
@@ -240,8 +271,18 @@ function createPromptCard(prompt) {
                 tag.setAttribute('data-category', category);
                 
                 tag.addEventListener('click', (e) => {
-                    e.stopPropagation(); // 阻止事件冒泡到卡片
-                    window.location.href = `categories.html?category=${encodeURIComponent(category)}`;
+                    e.stopPropagation();
+                    navigateToPage('categories');
+                    // 延迟一下以确保分类页面已加载
+                    setTimeout(() => {
+                        const categoryList = document.getElementById('category-list');
+                        const categoryItems = categoryList.querySelectorAll('li');
+                        categoryItems.forEach(item => {
+                            if (item.textContent === category) {
+                                item.click();
+                            }
+                        });
+                    }, 100);
                 });
                 
                 tagsContainer.appendChild(tag);
@@ -255,89 +296,117 @@ function createPromptCard(prompt) {
     const actions = document.createElement('div');
     actions.className = 'card-actions';
     
-    // 复制按钮
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'action-btn copy-btn';
-    copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-    copyBtn.setAttribute('title', '复制提示词');
-    copyBtn.setAttribute('data-id', prompt.id);
+    // 复制按钮组
+    const copyBtnGroup = document.createElement('div');
+    copyBtnGroup.className = 'copy-btn-group';
     
-    // 复制按钮点击事件
-    copyBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // 阻止事件冒泡到卡片
-        
-        // 获取要复制的内容
-        let contentToCopy = '';
-        if (prompt.content_zh || prompt.zh_content) {
-            contentToCopy = prompt.content_zh || prompt.zh_content;
-        } else if (prompt.content_en || prompt.en_content) {
-            contentToCopy = prompt.content_en || prompt.en_content;
-        } else {
-            contentToCopy = prompt.content || prompt.text || '';
-        }
-        
-        // 复制到剪贴板
-        if (contentToCopy) {
-            try {
-                navigator.clipboard.writeText(contentToCopy).then(() => {
-                    showToast('已复制到剪贴板');
-                }).catch(err => {
-                    console.error('复制失败:', err);
-                    showToast('复制失败');
-                });
-            } catch (error) {
-                console.error('复制出错:', error);
-                // 降级复制方法
-                const textarea = document.createElement('textarea');
-                textarea.value = contentToCopy;
-                document.body.appendChild(textarea);
-                textarea.select();
-                
-                try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        showToast('已复制到剪贴板');
-                    } else {
-                        showToast('复制失败');
-                    }
-                } catch (err) {
-                    console.error('降级复制失败:', err);
-                    showToast('复制失败');
-                }
-                
-                document.body.removeChild(textarea);
-            }
-        } else {
-            showToast('没有可复制的内容');
+    // 中文复制按钮
+    const copyZhBtn = document.createElement('button');
+    copyZhBtn.className = 'action-btn copy-btn';
+    copyZhBtn.innerHTML = '<i class="fas fa-copy"></i>';
+    copyZhBtn.setAttribute('title', '复制中文内容');
+    copyZhBtn.setAttribute('data-id', prompt.id);
+    copyZhBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const content = prompt.content_zh || prompt.zh_content || prompt.content || '';
+        if (content) {
+            copyToClipboard(content);
+            showToast('已复制中文内容');
         }
     });
+    copyBtnGroup.appendChild(copyZhBtn);
     
-    actions.appendChild(copyBtn);
+    // 如果有英文内容，添加英文复制按钮
+    if (prompt.content_en || prompt.en_content) {
+        const copyEnBtn = document.createElement('button');
+        copyEnBtn.className = 'action-btn copy-btn';
+        copyEnBtn.innerHTML = '<i class="fas fa-copy"></i> EN';
+        copyEnBtn.setAttribute('title', '复制英文内容');
+        copyEnBtn.setAttribute('data-id', prompt.id);
+        copyEnBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const content = prompt.content_en || prompt.en_content || '';
+            if (content) {
+                copyToClipboard(content);
+                showToast('已复制英文内容');
+            }
+        });
+        copyBtnGroup.appendChild(copyEnBtn);
+    }
+    
+    actions.appendChild(copyBtnGroup);
     
     // 收藏按钮
     const favoriteBtn = document.createElement('button');
-    favoriteBtn.className = 'action-btn toggle-favorite';
-    favoriteBtn.setAttribute('data-id', prompt.id);
+    favoriteBtn.className = 'action-btn favorite-btn';
     
-    // 设置初始收藏状态
-    if (typeof window.isFavorite === 'function' && window.isFavorite(prompt.id)) {
-        favoriteBtn.innerHTML = '<i class="fas fa-heart"></i>';
-        favoriteBtn.setAttribute('title', '取消收藏');
-    } else {
-        favoriteBtn.innerHTML = '<i class="far fa-heart"></i>';
-        favoriteBtn.setAttribute('title', '添加到收藏');
+    // 增加错误处理和兼容性检查
+    let isFavorited = false;
+    try {
+        // 优先使用全局函数
+        if (typeof window.isFavorite === 'function') {
+            isFavorited = window.isFavorite(prompt.id);
+        } 
+        // 备选方案1：使用favoritesManager.isFavorite
+        else if (window.favoritesManager && typeof window.favoritesManager.isFavorite === 'function') {
+            isFavorited = window.favoritesManager.isFavorite(prompt.id);
+        } 
+        // 备选方案2：使用favoritesManager.isInFavorites
+        else if (window.favoritesManager && typeof window.favoritesManager.isInFavorites === 'function') {
+            isFavorited = window.favoritesManager.isInFavorites(prompt.id);
+        }
+        console.log(`提示词 ${prompt.id} 收藏状态:`, isFavorited);
+    } catch (error) {
+        console.error('检查收藏状态失败:', error);
     }
     
-    // 收藏按钮点击事件
+    favoriteBtn.innerHTML = `<i class="${isFavorited ? 'fas' : 'far'} fa-heart"></i>`;
+    favoriteBtn.setAttribute('title', isFavorited ? '取消收藏' : '添加到收藏');
+    favoriteBtn.setAttribute('data-id', prompt.id);
+    
     favoriteBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // 阻止事件冒泡到卡片
-        if (typeof window.toggleFavorite === 'function') {
-            window.toggleFavorite(prompt);
-            
-            // 更新收藏图标
-            if (typeof window.isFavorite === 'function') {
-                const isFav = window.isFavorite(prompt.id);
-                window.updateFavoriteIcon(favoriteBtn, isFav);
+        e.stopPropagation();
+        try {
+            // 优先使用全局函数
+            if (typeof window.toggleFavorite === 'function') {
+                window.toggleFavorite(prompt);
+                
+                // 使用相同的判断逻辑更新图标
+                let isNowFavorited = false;
+                if (typeof window.isFavorite === 'function') {
+                    isNowFavorited = window.isFavorite(prompt.id);
+                } else if (window.favoritesManager && typeof window.favoritesManager.isFavorite === 'function') {
+                    isNowFavorited = window.favoritesManager.isFavorite(prompt.id);
+                } else if (window.favoritesManager && typeof window.favoritesManager.isInFavorites === 'function') {
+                    isNowFavorited = window.favoritesManager.isInFavorites(prompt.id);
+                }
+                
+                // 使用原生DOM API更新图标
+                const icon = favoriteBtn.querySelector('i');
+                if (isNowFavorited) {
+                    icon.className = 'fas fa-heart';
+                    favoriteBtn.setAttribute('title', '取消收藏');
+                } else {
+                    icon.className = 'far fa-heart';
+                    favoriteBtn.setAttribute('title', '添加到收藏');
+                }
+                
+                console.log(`提示词 ${prompt.id} 收藏状态已切换为:`, isNowFavorited);
+                
+                // 显示操作反馈
+                if (typeof showMessage === 'function') {
+                    showMessage(isNowFavorited ? '已添加到收藏' : '已从收藏中移除');
+                }
+            } else {
+                console.error('toggleFavorite函数不存在');
+                if (typeof showError === 'function') {
+                    showError('收藏功能暂时不可用');
+                }
+            }
+        } catch (error) {
+            console.error('切换收藏状态失败:', error);
+            if (typeof showError === 'function') {
+                showError('收藏操作失败');
             }
         }
     });
@@ -345,523 +414,15 @@ function createPromptCard(prompt) {
     actions.appendChild(favoriteBtn);
     card.appendChild(actions);
     
-    // 为整个卡片添加点击事件，显示详情模态框
-    card.addEventListener('click', (event) => {
-        console.log('卡片被点击 ===========> ', event.currentTarget.getAttribute('data-id'));
-        console.log('点击的DOM元素:', event.target);
-        console.log('点击坐标:', event.clientX, event.clientY);
-        
-        try {
-            console.log('卡片被点击:', prompt.id);
-            
-            // 获取完整提示词数据
-            let fullPrompt = prompt;
-            if (window.promptDataManager && typeof window.promptDataManager.getPromptById === 'function') {
-                const detailedPrompt = window.promptDataManager.getPromptById(prompt.id);
-                if (detailedPrompt) {
-                    fullPrompt = detailedPrompt;
-                }
-            }
-            
-            // 内容预处理，确保各种数据格式都能正确显示
-            const contentZh = fullPrompt.content_zh || fullPrompt.zh_content || 
-                (fullPrompt.content && fullPrompt.is_zh ? fullPrompt.content : null);
-            const contentEn = fullPrompt.content_en || fullPrompt.en_content || 
-                (fullPrompt.content && !fullPrompt.is_zh ? fullPrompt.content : null) || fullPrompt.text;
-            
-            // 如果只有中文内容，自动生成英文版本
-            let autoTranslatedEn = null;
-            if (contentZh && !contentEn) {
-                // 简单翻译中文内容为英文（模拟翻译）
-                autoTranslatedEn = `[Auto-translated from Chinese]\n\n${contentZh}`;
-                console.log('已自动生成英文版本:', autoTranslatedEn.substring(0, 50) + '...');
-            }
-            
-            console.log('解析内容:', {
-                hasZhContent: !!contentZh,
-                hasEnContent: !!contentEn,
-                hasAutoTranslatedEn: !!autoTranslatedEn,
-                contentLength: {
-                    zh: contentZh ? contentZh.length : 0,
-                    en: contentEn ? contentEn.length : 0,
-                    autoEn: autoTranslatedEn ? autoTranslatedEn.length : 0
-                }
-            });
-            
-            // 格式化内容函数（内联）
-            function formatContent(content) {
-                if (!content) return '';
-                // 将换行符转换为<br>
-                let formatted = content.replace(/\n/g, '<br>');
-                // 保留连续空格
-                formatted = formatted.replace(/ {2,}/g, function(match) {
-                    return '&nbsp;'.repeat(match.length);
-                });
-                return formatted;
-            }
-            
-            // 构建显示内容
-            let htmlContent = '';
-            
-            // 优先使用分类名作为标题（如果没有title或name）
-            const title = fullPrompt.title || fullPrompt.name || fullPrompt.category || '未命名提示词';
-            
-            // 添加分类信息
-            const category = fullPrompt.category || 
-                (Array.isArray(fullPrompt.categories) && fullPrompt.categories.length > 0 ? fullPrompt.categories[0] : '未分类');
-            
-            // 构建模态框DOM结构（与prompt-details.js中测试模态框一致）
-            const modal = document.createElement('div');
-            modal.id = 'temp-prompt-modal';
-            modal.className = 'modal';
-            modal.style.display = 'block';
-            modal.style.position = 'fixed';
-            modal.style.zIndex = '1000';
-            modal.style.left = '0';
-            modal.style.top = '0';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.overflow = 'auto';
-            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-            modal.style.backdropFilter = 'blur(3px)';
-            
-            // 创建模态框内容
-            const modalContent = document.createElement('div');
-            modalContent.className = 'modal-content';
-            modalContent.style.position = 'relative';
-            modalContent.style.backgroundColor = '#fff';
-            modalContent.style.margin = '50px auto';
-            modalContent.style.padding = '0';
-            modalContent.style.width = '550px';
-            modalContent.style.maxWidth = '90%';
-            modalContent.style.borderRadius = '8px';
-            modalContent.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.2)';
-            modalContent.style.animation = 'modalFadeIn 0.3s';
-            modalContent.style.border = '1px solid #eee';
-            
-            // 创建标题区域
-            const modalHeader = document.createElement('div');
-            modalHeader.className = 'modal-header';
-            modalHeader.style.display = 'flex';
-            modalHeader.style.flexDirection = 'column';
-            modalHeader.style.alignItems = 'start';
-            modalHeader.style.padding = '15px 20px';
-            modalHeader.style.borderBottom = '1px solid #eee';
-            
-            // 标题和关闭按钮
-            const headerTop = document.createElement('div');
-            headerTop.style.display = 'flex';
-            headerTop.style.justifyContent = 'space-between';
-            headerTop.style.width = '100%';
-            headerTop.style.marginBottom = '5px';
-            
-            const modalTitle = document.createElement('h2');
-            modalTitle.textContent = title;
-            modalTitle.style.margin = '0';
-            modalTitle.style.fontSize = '20px';
-            modalTitle.style.fontWeight = '600';
-            
-            const closeBtn = document.createElement('span');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'modal-close';
-            closeBtn.style.color = '#aaa';
-            closeBtn.style.fontSize = '28px';
-            closeBtn.style.fontWeight = 'bold';
-            closeBtn.style.cursor = 'pointer';
-            closeBtn.style.lineHeight = '1';
-            
-            headerTop.appendChild(modalTitle);
-            headerTop.appendChild(closeBtn);
-            
-            // 分类信息
-            const modalCategory = document.createElement('div');
-            modalCategory.textContent = `分类：${category}`;
-            modalCategory.style.color = '#666';
-            modalCategory.style.fontSize = '14px';
-            
-            modalHeader.appendChild(headerTop);
-            modalHeader.appendChild(modalCategory);
-            
-            // 正文区域
-            const modalBody = document.createElement('div');
-            modalBody.className = 'modal-body';
-            modalBody.style.padding = '20px';
-            
-            // 内容容器，允许滚动
-            const contentContainer = document.createElement('div');
-            contentContainer.style.maxHeight = '350px';
-            contentContainer.style.overflowY = 'auto';
-            contentContainer.style.paddingRight = '5px';
-            
-            // 中文内容
-            if (contentZh) {
-                const zhSection = document.createElement('div');
-                zhSection.className = 'content-section';
-                zhSection.style.marginBottom = '20px';
-                zhSection.style.padding = '15px';
-                zhSection.style.backgroundColor = '#f9f9f9';
-                zhSection.style.borderRadius = '8px';
-                zhSection.style.border = '1px solid #eee';
-                
-                const zhHeader = document.createElement('h4');
-                zhHeader.textContent = '中文版本';
-                zhHeader.style.marginTop = '0';
-                zhHeader.style.marginBottom = '10px';
-                zhHeader.style.color = '#3498db';
-                zhHeader.style.fontSize = '16px';
-                zhHeader.style.fontWeight = '500';
-                
-                const zhContent = document.createElement('div');
-                zhContent.className = 'content-text';
-                zhContent.innerHTML = formatContent(contentZh);
-                zhContent.style.whiteSpace = 'pre-wrap';
-                zhContent.style.lineHeight = '1.6';
-                zhContent.style.color = '#333';
-                
-                zhSection.appendChild(zhHeader);
-                zhSection.appendChild(zhContent);
-                contentContainer.appendChild(zhSection);
-            }
-            
-            // 英文内容
-            if (contentEn || autoTranslatedEn) {
-                const enSection = document.createElement('div');
-                enSection.className = 'content-section';
-                enSection.style.marginBottom = '20px';
-                enSection.style.padding = '15px';
-                enSection.style.backgroundColor = '#f9f9f9';
-                enSection.style.borderRadius = '8px';
-                enSection.style.border = '1px solid #eee';
-                
-                const enHeader = document.createElement('h4');
-                enHeader.textContent = 'English';
-                enHeader.style.marginTop = '0';
-                enHeader.style.marginBottom = '10px';
-                enHeader.style.color = '#3498db';
-                enHeader.style.fontSize = '16px';
-                enHeader.style.fontWeight = '500';
-                
-                // 如果是自动翻译内容，添加提示
-                if (!contentEn && autoTranslatedEn) {
-                    const autoTranslateNote = document.createElement('div');
-                    autoTranslateNote.className = 'auto-translate-note';
-                    autoTranslateNote.textContent = '(自动翻译)';
-                    autoTranslateNote.style.fontStyle = 'italic';
-                    autoTranslateNote.style.color = '#666';
-                    autoTranslateNote.style.fontSize = '12px';
-                    autoTranslateNote.style.marginBottom = '5px';
-                    enSection.appendChild(enHeader);
-                    enSection.appendChild(autoTranslateNote);
-                } else {
-                    enSection.appendChild(enHeader);
-                }
-                
-                const enContent = document.createElement('div');
-                enContent.className = 'content-text';
-                
-                // 使用自动翻译或原始英文内容
-                const displayEnContent = contentEn || autoTranslatedEn;
-                enContent.innerHTML = formatContent(displayEnContent);
-                
-                enContent.style.whiteSpace = 'pre-wrap';
-                enContent.style.lineHeight = '1.6';
-                enContent.style.color = '#333';
-                
-                enSection.appendChild(enContent);
-                contentContainer.appendChild(enSection);
-                console.log('已添加英文内容区域:', displayEnContent ? displayEnContent.substring(0, 50) + '...' : '无内容');
-            }
-            
-            // 如果没有内容，显示通用内容（可能是纯文本）
-            if (!contentZh && !contentEn && !autoTranslatedEn && (fullPrompt.content || fullPrompt.text)) {
-                const generalSection = document.createElement('div');
-                generalSection.className = 'content-section';
-                generalSection.style.marginBottom = '20px';
-                generalSection.style.padding = '15px';
-                generalSection.style.backgroundColor = '#f9f9f9';
-                generalSection.style.borderRadius = '8px';
-                generalSection.style.border = '1px solid #eee';
-                
-                const generalContent = document.createElement('div');
-                generalContent.className = 'content-text';
-                generalContent.innerHTML = formatContent(fullPrompt.content || fullPrompt.text);
-                generalContent.style.whiteSpace = 'pre-wrap';
-                generalContent.style.lineHeight = '1.6';
-                generalContent.style.color = '#333';
-                
-                generalSection.appendChild(generalContent);
-                contentContainer.appendChild(generalSection);
-            }
-            
-            // 如果没有任何内容，显示提示
-            if (!contentZh && !contentEn && !autoTranslatedEn && !fullPrompt.content && !fullPrompt.text) {
-                const emptyContent = document.createElement('div');
-                emptyContent.className = 'empty-content';
-                emptyContent.textContent = '此提示词暂无内容';
-                emptyContent.style.color = '#999';
-                emptyContent.style.fontStyle = 'italic';
-                emptyContent.style.textAlign = 'center';
-                emptyContent.style.padding = '20px';
-                contentContainer.appendChild(emptyContent);
-            }
-            
-            modalBody.appendChild(contentContainer);
-            
-            // 底部操作区域
-            const modalFooter = document.createElement('div');
-            modalFooter.className = 'modal-footer';
-            modalFooter.style.padding = '15px 20px';
-            modalFooter.style.borderTop = '1px solid #eee';
-            modalFooter.style.display = 'flex';
-            modalFooter.style.justifyContent = 'space-between';
-            modalFooter.style.alignItems = 'center';
-            
-            // 收藏按钮
-            const isFavorited = typeof window.isFavorite === 'function' && window.isFavorite(fullPrompt.id);
-            
-            const favoriteBtn = document.createElement('button');
-            favoriteBtn.className = 'btn favorite-btn';
-            favoriteBtn.innerHTML = isFavorited ? 
-                '<i class="fas fa-heart"></i> 已收藏' : 
-                '<i class="far fa-heart"></i> 收藏';
-            favoriteBtn.style.backgroundColor = '#3498db';
-            favoriteBtn.style.color = 'white';
-            favoriteBtn.style.border = 'none';
-            favoriteBtn.style.padding = '8px 15px';
-            favoriteBtn.style.borderRadius = '4px';
-            favoriteBtn.style.cursor = 'pointer';
-            favoriteBtn.style.fontSize = '14px';
-            
-            // 复制按钮区域
-            const copyBtnGroup = document.createElement('div');
-            copyBtnGroup.className = 'copy-btn-group';
-            copyBtnGroup.style.display = 'flex';
-            copyBtnGroup.style.gap = '10px';
-            
-            // 生成相应的复制按钮
-            if (contentZh) {
-                const copyZhBtn = document.createElement('button');
-                copyZhBtn.className = 'btn copy-btn';
-                copyZhBtn.innerHTML = '<i class="fas fa-copy"></i> 复制中文';
-                copyZhBtn.style.backgroundColor = '#3498db';
-                copyZhBtn.style.color = 'white';
-                copyZhBtn.style.border = 'none';
-                copyZhBtn.style.padding = '8px 15px';
-                copyZhBtn.style.borderRadius = '4px';
-                copyZhBtn.style.cursor = 'pointer';
-                copyZhBtn.style.fontSize = '14px';
-                
-                copyZhBtn.addEventListener('click', () => {
-                    // 复制到剪贴板
-                    if (contentZh) {
-                        try {
-                            navigator.clipboard.writeText(contentZh).then(() => {
-                                showToast('已复制到剪贴板');
-                            }).catch(err => {
-                                console.error('复制失败:', err);
-                                fallbackCopy(contentZh);
-                            });
-                        } catch (error) {
-                            console.error('复制出错:', error);
-                            fallbackCopy(contentZh);
-                        }
-                    }
-                });
-                
-                copyBtnGroup.appendChild(copyZhBtn);
-            }
-            
-            // 英文复制按钮
-            if (contentEn || autoTranslatedEn) {
-                const copyEnBtn = document.createElement('button');
-                copyEnBtn.className = 'btn copy-btn';
-                copyEnBtn.innerHTML = '<i class="fas fa-copy"></i> 复制英文';
-                copyEnBtn.style.backgroundColor = '#3498db';
-                copyEnBtn.style.color = 'white';
-                copyEnBtn.style.border = 'none';
-                copyEnBtn.style.padding = '8px 15px';
-                copyEnBtn.style.borderRadius = '4px';
-                copyEnBtn.style.margin = '0 5px';
-                copyEnBtn.style.cursor = 'pointer';
-                copyEnBtn.style.fontSize = '14px';
-                
-                const textToCopy = contentEn || autoTranslatedEn;
-                copyEnBtn.addEventListener('click', () => {
-                    // 复制到剪贴板
-                    try {
-                        navigator.clipboard.writeText(textToCopy).then(() => {
-                            showToast('已复制到剪贴板');
-                        }).catch(err => {
-                            console.error('复制失败:', err);
-                            fallbackCopy(textToCopy);
-                        });
-                    } catch (error) {
-                        console.error('复制出错:', error);
-                        fallbackCopy(textToCopy);
-                    }
-                });
-                
-                copyBtnGroup.appendChild(copyEnBtn);
-            }
-            
-            if (!contentZh && !contentEn && (fullPrompt.content || fullPrompt.text)) {
-                const generalBtn = document.createElement('button');
-                generalBtn.className = 'btn copy-btn';
-                generalBtn.innerHTML = '<i class="fas fa-copy"></i> 复制内容';
-                generalBtn.style.backgroundColor = '#3498db';
-                generalBtn.style.color = 'white';
-                generalBtn.style.border = 'none';
-                generalBtn.style.padding = '8px 15px';
-                generalBtn.style.borderRadius = '4px';
-                generalBtn.style.cursor = 'pointer';
-                generalBtn.style.fontSize = '14px';
-                
-                generalBtn.addEventListener('click', () => {
-                    const text = fullPrompt.content || fullPrompt.text;
-                    if (text) {
-                        try {
-                            navigator.clipboard.writeText(text).then(() => {
-                                showToast('已复制到剪贴板');
-                            }).catch(err => {
-                                console.error('复制失败:', err);
-                                fallbackCopy(text);
-                            });
-                        } catch (error) {
-                            console.error('复制出错:', error);
-                            fallbackCopy(text);
-                        }
-                    }
-                });
-                
-                copyBtnGroup.appendChild(generalBtn);
-            }
-            
-            modalFooter.appendChild(favoriteBtn);
-            modalFooter.appendChild(copyBtnGroup);
-            
-            // 组装模态框
-            modalContent.appendChild(modalHeader);
-            modalContent.appendChild(modalBody);
-            modalContent.appendChild(modalFooter);
-            modal.appendChild(modalContent);
-            
-            // 添加到body
-            document.body.appendChild(modal);
-            
-            // 显示Toast消息
-            function showToast(message) {
-                let toast = document.getElementById('toast');
-                if (!toast) {
-                    toast = document.createElement('div');
-                    toast.id = 'toast';
-                    document.body.appendChild(toast);
-                }
-                toast.textContent = message;
-                toast.className = 'show';
-                setTimeout(() => {
-                    toast.className = toast.className.replace('show', '');
-                }, 3000);
-            }
-            
-            // 降级复制方法
-            function fallbackCopy(text) {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                
-                try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        showToast('已复制到剪贴板');
-                    } else {
-                        showToast('复制失败，请手动复制');
-                    }
-                } catch (err) {
-                    console.error('降级复制失败:', err);
-                    showToast('复制失败，请手动复制');
-                }
-                
-                document.body.removeChild(textarea);
-            }
-            
-            // 收藏按钮点击事件
-            favoriteBtn.addEventListener('click', () => {
-                if (typeof window.toggleFavorite === 'function') {
-                    window.toggleFavorite(fullPrompt);
-                    
-                    const isNowFavorite = typeof window.isFavorite === 'function' && window.isFavorite(fullPrompt.id);
-                    favoriteBtn.innerHTML = isNowFavorite ? 
-                        '<i class="fas fa-heart"></i> 已收藏' : 
-                        '<i class="far fa-heart"></i> 收藏';
-                    
-                    // 更新卡片上的收藏图标
-                    const cardFavoriteBtn = document.querySelector(`.toggle-favorite[data-id="${fullPrompt.id}"]`);
-                    if (cardFavoriteBtn && typeof window.updateFavoriteIcon === 'function') {
-                        window.updateFavoriteIcon(cardFavoriteBtn, isNowFavorite);
-                    }
-                }
-            });
-            
-            // 关闭按钮点击事件
-            closeBtn.addEventListener('click', () => {
-                document.body.removeChild(modal);
-            });
-            
-            // 点击模态框外部关闭
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    document.body.removeChild(modal);
-                }
-            });
-            
-            // 防止滚动穿透
-            document.body.style.overflow = 'hidden';
-            
-            // 清除模态框时恢复滚动
-            function removeModalAndRestoreScroll() {
-                document.body.style.overflow = '';
-                if (document.body.contains(modal)) {
-                    document.body.removeChild(modal);
-                }
-            }
-            
-            // ESC键关闭模态框
-            function handleEscKey(event) {
-                if (event.key === 'Escape') {
-                    removeModalAndRestoreScroll();
-                    document.removeEventListener('keydown', handleEscKey);
-                }
-            }
-            
-            document.addEventListener('keydown', handleEscKey);
-            
-        } catch (error) {
-            console.error('显示提示词详情时出错:', error);
-            alert('显示提示词详情时出错: ' + error.message);
+    // 点击卡片显示详情
+    card.addEventListener('click', () => {
+        if (typeof window.showPromptModal === 'function') {
+            window.showPromptModal(prompt);
+        } else {
+            console.error('showPromptModal函数未定义');
         }
     });
     
-    // 在返回卡片前添加一些明显的标记，确保卡片正确创建
-    card.style.position = 'relative';
-    card.style.cursor = 'pointer';
-    
-    // 添加一个小提示，表明卡片可点击
-    const clickTip = document.createElement('div');
-    clickTip.style.position = 'absolute';
-    clickTip.style.bottom = '5px';
-    clickTip.style.right = '5px';
-    clickTip.style.fontSize = '12px';
-    clickTip.style.color = 'var(--primary-color)';
-    clickTip.style.pointerEvents = 'none';
-    clickTip.innerHTML = '<i class="fas fa-search"></i>';
-    clickTip.title = '点击查看详情';
-    card.appendChild(clickTip);
-    
-    console.log('卡片创建完成，已绑定点击事件');
     return card;
 }
 
@@ -1023,24 +584,6 @@ function setupEventListeners() {
             }
         }
     });
-
-    // 添加刷新按钮事件处理
-    const reloadButtons = document.querySelectorAll('.reload-btn');
-    reloadButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            reloadData();
-        });
-    });
-
-    // 添加F5键刷新数据功能
-    document.addEventListener('keydown', function(e) {
-        // 如果按下的是F5键
-        if (e.key === 'F5') {
-            e.preventDefault(); // 阻止默认刷新行为
-            reloadData();
-        }
-    });
 }
 
 // 处理分类搜索
@@ -1099,50 +642,57 @@ function fallbackCopy(text) {
 }
 
 // 切换收藏状态
-function toggleFavorite(promptId) {
-    const prompt = promptDataManager.getPromptById(promptId);
-    if (!prompt) return;
-
+function toggleFavorite(prompt) {
     try {
-        // 使用全局函数切换收藏状态
-        const result = window.toggleFavorite(prompt);
-        
-        if (result) {
-            const isCurrentlyFavorited = window.isFavorite(promptId);
-            
-            // 显示操作结果提示
-            if (isCurrentlyFavorited) {
-                showMessage('已添加到收藏');
-            } else {
-                showMessage('已从收藏中移除');
-            }
-            
-            // 更新UI
-            document.querySelectorAll(`.prompt-card[data-id="${promptId}"] .favorite-btn`).forEach(btn => {
-                if (isCurrentlyFavorited) {
-                    btn.classList.add('active');
-                    btn.innerHTML = '<i class="fas fa-star"></i> 已收藏';
-                    btn.title = '取消收藏';
-                } else {
-                    btn.classList.remove('active');
-                    btn.innerHTML = '<i class="far fa-star"></i> 收藏';
-                    btn.title = '添加到收藏';
-                }
-            });
-            
-            // 如果在收藏页面，需要重新渲染
-            if (currentPage === 'favorites') {
-                window.favoritesManager.updateFavoritesUI();
-            }
-            
-            // 更新统计信息
-            updateStats();
-        } else {
-            showError('收藏操作失败');
+        // 确保有一个ID
+        if (!prompt || (!prompt.id && prompt.id !== 0)) {
+            console.error('无效的提示词数据，缺少ID');
+            return false;
         }
+        
+        let result = false;
+        
+        // 尝试使用不同的途径切换收藏状态
+        if (window.favoritesManager && typeof window.favoritesManager.toggleFavorite === 'function') {
+            result = window.favoritesManager.toggleFavorite(prompt);
+        } else if (typeof window.toggleFavorite === 'function' && window.toggleFavorite !== toggleFavorite) {
+            result = window.toggleFavorite(prompt);
+        } else {
+            // 如果没有找到toggleFavorite函数，尝试自己实现简单版本
+            if (!window.favoritesManager) {
+                console.error('收藏管理器未初始化');
+                return false;
+            }
+            
+            // 检查是否已收藏
+            const isInFavorites = typeof window.favoritesManager.isInFavorites === 'function' 
+                ? window.favoritesManager.isInFavorites(prompt.id)
+                : (typeof window.favoritesManager.isFavorite === 'function' 
+                    ? window.favoritesManager.isFavorite(prompt.id) 
+                    : false);
+            
+            if (isInFavorites) {
+                // 移除收藏
+                if (typeof window.favoritesManager.removeFromFavorites === 'function') {
+                    result = window.favoritesManager.removeFromFavorites(prompt.id);
+                }
+            } else {
+                // 添加收藏
+                if (typeof window.favoritesManager.addToFavorites === 'function') {
+                    result = window.favoritesManager.addToFavorites(prompt);
+                }
+            }
+        }
+        
+        // 更新UI
+        if (typeof window.favoritesManager.updateFavoritesUI === 'function') {
+            window.favoritesManager.updateFavoritesUI();
+        }
+        
+        return result;
     } catch (error) {
-        console.error('收藏操作失败:', error);
-        showError('操作失败，请重试');
+        console.error('切换收藏状态时出错:', error);
+        return false;
     }
 }
 
@@ -1257,28 +807,4 @@ function showError(message) {
             document.body.removeChild(errorElement);
         }, 300);
     }, 3000);
-}
-
-// 重新加载数据
-function reloadData() {
-    showLoadingIndicator();
-    
-    // 清空现有数据
-    document.querySelector('.prompts-grid').innerHTML = '';
-    
-    // 重新加载数据
-    promptDataManager.loadPrompts().then(() => {
-        // 重新渲染数据
-        renderCategories();
-        renderPopularCategories();
-        renderLatestPrompts();
-        updateStats();
-        
-        hideLoadingIndicator();
-        showToast('数据已重新加载');
-    }).catch(error => {
-        console.error('重新加载数据失败:', error);
-        hideLoadingIndicator();
-        showToast('加载失败，请重试');
-    });
 } 

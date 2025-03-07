@@ -1,0 +1,495 @@
+/* 提示词详情模态框样式 */
+
+/* 模态框基础样式 */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  overflow: auto;
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 模态框内容 */
+.modal-content {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 960px;
+  max-height: 90vh;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 0.3s;
+}
+
+/* 模态框标题 */
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  cursor: pointer;
+  font-size: 24px;
+  color: #999;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #666;
+}
+
+/* 分类 */
+.modal-category {
+  padding: 8px 20px;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 1px solid #eee;
+}
+
+/* 内容区域 */
+.modal-body {
+  padding: 15px 20px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(90vh - 160px);
+}
+
+/* 内容区块 */
+.content-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.content-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 中英文内容样式 */
+.zh-content {
+  /* 中文内容样式 */
+}
+
+.en-content {
+  /* 英文内容样式 */
+  color: #444;
+}
+
+/* 底部按钮 */
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9f9f9;
+}
+
+.btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #45a049;
+}
+
+.copy-btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Toast消息 */
+#toast {
+  visibility: hidden;
+  min-width: 200px;
+  margin-left: -100px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 12px;
+  position: fixed;
+  z-index: 1100;
+  left: 50%;
+  bottom: 30px;
+  font-size: 14px;
+}
+
+#toast.show {
+  visibility: visible;
+  animation: fadeIn 0.5s, fadeOut 0.5s 2.5s;
+}
+
+/* 动画 */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    bottom: 0;
+  }
+  to {
+    opacity: 1;
+    bottom: 30px;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    bottom: 30px;
+  }
+  to {
+    opacity: 0;
+    bottom: 0;
+  }
+}
+
+/* 代码块样式 */
+.content-text pre {
+  background-color: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+}
+
+.content-text code {
+  font-family: 'Courier New', monospace;
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+/* 列表样式 */
+.content-text ul, .content-text ol {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.content-text li {
+  margin-bottom: 5px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 5% auto;
+  }
+  
+  .modal-header, .modal-category, .modal-body, .modal-footer {
+    padding: 10px 15px;
+  }
+  
+  .modal-body {
+    max-height: calc(95vh - 150px);
+  }
+  
+  .copy-btn-group {
+    flex-direction: column;
+  }
+}
+
+/* 暗色模式 */
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background-color: #222;
+  }
+  
+  .modal-header, .modal-category, .modal-footer {
+    border-color: #333;
+  }
+  
+  .modal-header h2, .section-title {
+    color: #e0e0e0;
+  }
+  
+  .modal-category, .content-text {
+    color: #bbb;
+  }
+  
+  .modal-close {
+    color: #aaa;
+  }
+  
+  .modal-close:hover {
+    color: #ccc;
+  }
+  
+  .modal-footer {
+    background-color: #1e1e1e;
+  }
+  
+  .content-text pre {
+    background-color: #333;
+  }
+  
+  .content-text code {
+    background-color: #2a2a2a;
+  }
+}
+
+.prompt-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.prompt-modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 50px;
+}
+
+.modal-content {
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 800px;
+    position: relative;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.header-content {
+    flex: 1;
+}
+
+.modal-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.modal-category {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0 10px;
+    transition: opacity 0.2s;
+}
+
+.modal-close:hover {
+    opacity: 0.8;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.content-section {
+    background-color: var(--content-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.content-section:last-child {
+    margin-bottom: 0;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.content-title {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.content-title i {
+    color: var(--primary-color);
+}
+
+.content-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.content-body {
+    padding: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+}
+
+.copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background-color: var(--hover-color);
+}
+
+.copy-btn i {
+    font-size: 0.9em;
+}
+
+/* 双语标记样式 */
+.bilingual-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+.bilingual-badge i {
+    margin-right: 4px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .prompt-modal.show {
+        padding-top: 20px;
+    }
+    
+    .modal-content {
+        max-width: 95%;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .content-section {
+        margin-bottom: 15px;
+    }
+    
+    .content-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .content-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .modal-content {
+        background-color: var(--dark-bg);
+    }
+    
+    .content-section {
+        background-color: var(--dark-content-bg);
+        border-color: var(--dark-border-color);
+    }
+    
+    .content-header {
+        background-color: var(--dark-header-bg);
+    }
+    
+    .copy-btn {
+        background-color: var(--dark-bg);
+        border-color: var(--dark-border-color);
+        color: var(--dark-text-color);
+    }
+    
+    .copy-btn:hover {
+        background-color: var(--dark-hover-color);
+    }
+} 

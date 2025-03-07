@@ -55,16 +55,22 @@ async function showPromptModal(prompt) {
 
   // 获取静态模态框
   const modal = document.getElementById('prompt-modal');
-  if (!modal) return;
+  if (!modal) {
+    console.error('找不到模态框元素 #prompt-modal');
+    return;
+  }
+  
+  // 存储提示词ID用于收藏功能
+  modal.dataset.promptId = prompt.id;
   
   // 显示模态框
   modal.className = 'modal show';
   
-  // 获取提示词内容
+  // 获取提示词内容 - 统一字段名称
   const title = prompt.title || prompt.name || '未命名提示词';
   const category = prompt.category || (Array.isArray(prompt.categories) && prompt.categories[0]) || '未分类';
   
-  // 显示加载中的提示
+  // 显示加载中提示
   const loadingDiv = document.createElement('div');
   loadingDiv.style.position = 'fixed';
   loadingDiv.style.top = '50%';
@@ -78,89 +84,69 @@ async function showPromptModal(prompt) {
   loadingDiv.innerHTML = '正在加载内容...';
   document.body.appendChild(loadingDiv);
   
-  // 准备内容变量
+  // 准备内容变量 - 统一数据处理逻辑
   let contentZh = '';  // 中文内容
   let contentEn = '';  // 英文内容
   let useAutoTranslation = false;  // 是否使用自动翻译
   
   try {
-    // 1. 获取中文内容 - 优先从rules_bilingual.json中的content_en_zh字段获取
-    if (window.promptDataManager && typeof window.promptDataManager.getChineseContent === 'function') {
-      console.log('尝试从rules_bilingual.json中获取中文内容...');
-      const bilingualZh = window.promptDataManager.getChineseContent(prompt.id);
-      
-      if (bilingualZh) {
-        console.log('从rules_bilingual.json成功获取到中文内容');
-        contentZh = bilingualZh;
-      } else {
-        console.log('未从rules_bilingual.json中找到中文内容，使用prompts.json中的内容');
-        contentZh = prompt.content || '';
-      }
-    } else {
-      // 如果getChineseContent方法不存在，直接使用prompt.content
-      console.log('getChineseContent方法不存在，使用prompts.json中的内容');
-      contentZh = prompt.content || '';
-    }
+    // 统一处理中文内容来源 
+    contentZh = prompt.content_zh || prompt.zh_content || prompt.content || '';
+    console.log('【中文内容】长度:', contentZh.length, '前50个字符:', contentZh.substring(0, 50));
     
-    console.log('【中文内容】长度:', contentZh.length, '前100个字符:', contentZh.substring(0, 100));
+    // 统一处理英文内容来源
+    contentEn = prompt.content_en || prompt.en_content || prompt.english_content || '';
+    console.log('【英文内容】来自原始数据，长度:', contentEn.length);
     
-    // 2. 获取英文内容 - 优先从promptDataManager获取
-    if (window.promptDataManager && typeof window.promptDataManager.getEnglishContent === 'function') {
+    // 如果没有英文内容，尝试从其他源获取
+    if (!contentEn && window.promptDataManager && typeof window.promptDataManager.getEnglishContent === 'function') {
       console.log('尝试从promptDataManager获取英文内容...');
       contentEn = window.promptDataManager.getEnglishContent(prompt.id);
-      console.log(`获取ID为${prompt.id}的英文内容结果:`, contentEn ? '成功' : '失败', '内容长度:', contentEn ? contentEn.length : 0);
+      console.log('从promptDataManager获取结果:', contentEn ? '成功' : '失败');
     }
     
-    // 如果第一种方法失败，尝试直接获取方法
+    // 如果仍然没有英文内容，尝试直接获取
     if (!contentEn) {
-      console.log('从promptDataManager获取失败，尝试直接获取...');
+      console.log('尝试直接获取英文内容...');
       contentEn = await getEnglishContentDirect(prompt.id, contentZh);
-      console.log('直接获取结果:', contentEn ? '成功' : '失败', '内容长度:', contentEn ? contentEn.length : 0);
+      console.log('直接获取结果:', contentEn ? '成功' : '失败');
     }
     
-    // 如果都失败，使用模拟翻译
+    // 如果所有方法都失败，使用模拟翻译
     if (!contentEn) {
-      console.log('所有获取方法都失败，使用模拟翻译');
+      console.log('所有获取英文内容的方法都失败，使用模拟翻译');
       contentEn = translateToEnglish(contentZh);
       useAutoTranslation = true;
-      console.log('模拟翻译生成的内容长度:', contentEn.length);
     }
     
-    // 输出英文内容前部分以验证内容类型
-    console.log('【英文内容】长度:', contentEn.length, '前100个字符:', contentEn.substring(0, 100));
+    console.log('【英文内容】最终长度:', contentEn.length, '前50个字符:', contentEn.substring(0, 50));
     
-    // 验证内容
-    // 识别内容是否真的是英文
+    // 验证英文内容是否真的是英文
     const isReallyEnglish = /^[A-Za-z\s\d\p{P}]+/u.test(contentEn.substring(0, 50));
-    console.log('获取的英文内容是否真的是英文:', isReallyEnglish ? '是' : '否');
-    
-    // 如果识别出获取的"英文"内容实际上是中文，进行替换
     if (!isReallyEnglish && contentEn.length > 0 && !useAutoTranslation) {
-      console.log('警告：获取的英文内容实际上是中文！使用模拟翻译作为替代。');
+      console.log('警告：获取的英文内容实际上不是英文！使用模拟翻译替代');
       contentEn = translateToEnglish(contentZh);
       useAutoTranslation = true;
     }
   } catch (error) {
     console.error('获取内容过程中发生错误:', error);
-    // 确保至少有中文内容
-    if (!contentZh) {
-      contentZh = prompt.content || '';
-    }
-    // 如果英文内容获取失败，使用模拟翻译
-    if (!contentEn) {
-      contentEn = translateToEnglish(contentZh);
-      useAutoTranslation = true;
-    }
+    // 确保有内容显示
+    if (!contentZh) contentZh = prompt.content || '';
+    if (!contentEn) contentEn = translateToEnglish(contentZh);
+    useAutoTranslation = true;
   } finally {
     // 移除加载提示
     document.body.removeChild(loadingDiv);
   }
   
   // 更新模态框内容
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-category').textContent = category;
+  const modalTitle = document.getElementById('modal-title');
+  const modalCategory = document.getElementById('modal-category');
   
-  // 完全重建内容区域，确保结构正确
+  if (modalTitle) modalTitle.textContent = title;
+  if (modalCategory) modalCategory.textContent = category;
+  
+  // 重建内容区域
   const modalBody = document.querySelector('.modal-body');
   if (!modalBody) {
     console.error('找不到模态框内容区域元素 .modal-body');
@@ -169,52 +155,36 @@ async function showPromptModal(prompt) {
   
   // 清空现有内容
   modalBody.innerHTML = '';
-  console.log('已清空模态框内容区域');
   
-  // 解析内容情况
-  const contentInfo = {
-    hasZhContent: contentZh.length > 0,
-    hasEnContent: contentEn.length > 0,
-    hasAutoTranslatedEn: useAutoTranslation,
-    contentLength: {
-      zh: contentZh.length,
-      en: contentEn.length,
-      autoEn: useAutoTranslation ? contentEn.length : 0
-    }
-  };
-  console.log('解析内容:', contentInfo);
-    
   // 创建中文内容区
   const sectionZh = document.createElement('div');
   sectionZh.className = 'content-section';
   sectionZh.id = 'section-zh';
-    
+  
   const zhTitle = document.createElement('div');
   zhTitle.className = 'section-title';
   zhTitle.textContent = '中文';
-    
+  
   const zhContent = document.createElement('div');
   zhContent.className = 'content-text zh-content';
   zhContent.id = 'content-zh';
   zhContent.innerHTML = formatContent(contentZh);
-    
+  
   sectionZh.appendChild(zhTitle);
   sectionZh.appendChild(zhContent);
   modalBody.appendChild(sectionZh);
-  console.log('已添加中文内容区域:', contentZh.substring(0, 50) + '...');
-    
+  
   // 创建英文内容区
   if (contentEn) {
-    console.log('创建英文内容区域，内容长度:', contentEn.length);
     const sectionEn = document.createElement('div');
     sectionEn.className = 'content-section';
     sectionEn.id = 'section-en';
-      
+    
     const enTitle = document.createElement('div');
     enTitle.className = 'section-title';
-    enTitle.textContent = 'English (英文)';
+    enTitle.textContent = '中文';
     
-    // 如果是自动翻译的内容，添加一个指示器
+    // 如果是自动翻译，添加提示
     if (useAutoTranslation) {
       const autoTranslateIndicator = document.createElement('small');
       autoTranslateIndicator.style.color = '#f44336';
@@ -222,111 +192,114 @@ async function showPromptModal(prompt) {
       autoTranslateIndicator.textContent = '[自动翻译]';
       enTitle.appendChild(autoTranslateIndicator);
     }
-      
+    
     const enContent = document.createElement('div');
     enContent.className = 'content-text en-content';
     enContent.id = 'content-en';
     enContent.innerHTML = formatContent(contentEn);
-      
+    
     sectionEn.appendChild(enTitle);
     sectionEn.appendChild(enContent);
     modalBody.appendChild(sectionEn);
-    console.log('已添加英文内容区域:', contentEn.substring(0, 50) + '...');
-  } else {
-    console.log('没有英文内容，不创建英文内容区域');
   }
   
-  // 确保复制按钮可见
+  // 处理复制按钮
   const copyZhBtn = document.getElementById('copy-zh-btn');
   const copyEnBtn = document.getElementById('copy-en-btn');
   
   if (copyZhBtn) {
     copyZhBtn.style.display = contentZh ? 'inline-block' : 'none';
-    copyZhBtn.innerHTML = '<i class="fas fa-copy"></i> 复制中文';
   }
   
   if (copyEnBtn) {
     copyEnBtn.style.display = contentEn ? 'inline-block' : 'none';
-    copyEnBtn.innerHTML = '<i class="fas fa-copy"></i> 复制英文';
   }
   
   // 更新收藏状态
   const favoriteBtn = document.getElementById('modal-favorite-btn');
-  const isFavorite = window.isFavorite?.(prompt.id);
-  favoriteBtn.innerHTML = `
-    <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
-    ${isFavorite ? '已收藏' : '收藏'}
-  `;
+  if (favoriteBtn) {
+    const isFavorited = typeof window.isFavorite === 'function' && window.isFavorite(prompt.id);
+    favoriteBtn.innerHTML = `
+      <i class="${isFavorited ? 'fas' : 'far'} fa-heart"></i>
+      ${isFavorited ? '已收藏' : '收藏'}
+    `;
+  }
   
   // 防止背景滚动
   document.body.style.overflow = 'hidden';
-
-  // 事件处理
+  
+  // 绑定事件处理函数 - 确保使用正确的选择器
   const closeBtn = modal.querySelector('.modal-close');
-
-  // 关闭按钮事件
-  const closeModal = () => {
-    modal.className = 'modal';
-    document.body.style.overflow = '';
-  };
+  if (closeBtn) {
+    const closeModal = () => {
+      modal.className = 'modal';
+      document.body.style.overflow = '';
+    };
+    
+    // 移除旧事件再绑定新事件，防止重复
+    closeBtn.removeEventListener('click', closeModal);
+    closeBtn.addEventListener('click', closeModal);
+  } else {
+    console.error('找不到关闭按钮元素 .modal-close');
+  }
   
-  // 移除旧事件监听器
-  closeBtn.removeEventListener('click', closeModal);
-  // 添加新事件监听器
-  closeBtn.addEventListener('click', closeModal);
-
-  // 收藏按钮事件
-  favoriteBtn.removeEventListener('click', toggleFavoriteHandler);
-  favoriteBtn.addEventListener('click', toggleFavoriteHandler);
+  // 绑定复制按钮事件
+  if (copyZhBtn) {
+    const copyZhHandler = () => {
+      copyToClipboard(contentZh.replace(/<br>/g, '\n'));
+      showToast('已复制中文内容');
+    };
+    copyZhBtn.removeEventListener('click', copyZhHandler);
+    copyZhBtn.addEventListener('click', copyZhHandler);
+  }
   
-  function toggleFavoriteHandler() {
-    if (window.toggleFavorite) {
-      window.toggleFavorite(prompt);
-      const isFavorite = window.isFavorite?.(prompt.id);
-      favoriteBtn.innerHTML = `
-        <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
-        ${isFavorite ? '已收藏' : '收藏'}
-      `;
+  if (copyEnBtn) {
+    const copyEnHandler = () => {
+      copyToClipboard(contentEn.replace(/<br>/g, '\n'));
+      showToast('已复制英文内容');
+    };
+    copyEnBtn.removeEventListener('click', copyEnHandler);
+    copyEnBtn.addEventListener('click', copyEnHandler);
+  }
+  
+  // 绑定收藏按钮事件
+  if (favoriteBtn) {
+    const toggleFavoriteHandler = () => {
+      if (typeof window.toggleFavorite === 'function') {
+        window.toggleFavorite(prompt);
+        const isFavorited = typeof window.isFavorite === 'function' && window.isFavorite(prompt.id);
+        favoriteBtn.innerHTML = `
+          <i class="${isFavorited ? 'fas' : 'far'} fa-heart"></i>
+          ${isFavorited ? '已收藏' : '收藏'}
+        `;
+      }
+    };
+    favoriteBtn.removeEventListener('click', toggleFavoriteHandler);
+    favoriteBtn.addEventListener('click', toggleFavoriteHandler);
+  }
+  
+  // 点击外部关闭
+  const outsideClickHandler = (e) => {
+    if (e.target === modal) {
+      modal.className = 'modal';
+      document.body.style.overflow = '';
     }
-  }
-
-  // 复制按钮事件
-  copyZhBtn.removeEventListener('click', copyZhHandler);
-  copyZhBtn.addEventListener('click', copyZhHandler);
-  
-  copyEnBtn.removeEventListener('click', copyEnHandler);
-  copyEnBtn.addEventListener('click', copyEnHandler);
-  
-  function copyZhHandler() {
-    copyPromptText(contentZh);
-    showToast('中文内容已复制');
-  }
-  
-  function copyEnHandler() {
-    copyPromptText(contentEn);
-    showToast('英文内容已复制');
-  }
-
-  // 点击模态框外部关闭
+  };
   modal.removeEventListener('click', outsideClickHandler);
   modal.addEventListener('click', outsideClickHandler);
   
-  function outsideClickHandler(e) {
-    if (e.target === modal) {
-      closeModal();
-    }
-  }
-
   // ESC键关闭
+  const escKeyHandler = (e) => {
+    if (e.key === 'Escape') {
+      modal.className = 'modal';
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', escKeyHandler);
+    }
+  };
   document.removeEventListener('keydown', escKeyHandler);
   document.addEventListener('keydown', escKeyHandler);
   
-  function escKeyHandler(e) {
-    if (e.key === 'Escape') {
-      closeModal();
-      document.removeEventListener('keydown', escKeyHandler);
-    }
-  }
+  console.log('模态框显示完成');
 }
 
 // 显示提示消息

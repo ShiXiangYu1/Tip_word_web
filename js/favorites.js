@@ -3,6 +3,13 @@ class FavoritesManager {
     constructor() {
         this.favorites = [];
         this.loadFavorites();
+        
+        // 确保方法绑定到实例
+        this.isFavorite = this.isFavorite.bind(this);
+        this.isInFavorites = this.isInFavorites.bind(this);
+        this.toggleFavorite = this.toggleFavorite.bind(this);
+        this.addToFavorites = this.addToFavorites.bind(this);
+        this.removeFromFavorites = this.removeFromFavorites.bind(this);
     }
 
     // 从localStorage加载收藏数据
@@ -107,7 +114,17 @@ class FavoritesManager {
     // 检查是否在收藏中
     isInFavorites(promptId) {
         if (!promptId) return false;
-        return this.favorites.some(item => String(item.id) === String(promptId));
+        try {
+            return this.favorites.some(item => String(item.id) === String(promptId));
+        } catch (error) {
+            console.error('检查收藏状态失败:', error);
+            return false;
+        }
+    }
+
+    // 添加别名方法
+    isFavorite(promptId) {
+        return this.isInFavorites(promptId);
     }
 
     // 获取所有收藏
@@ -315,28 +332,50 @@ class FavoritesManager {
     }
 }
 
-// 收藏管理实例
-window.favoritesManager = new FavoritesManager();
-
-// 导出到全局作用域的辅助函数
-window.isFavorite = function(promptId) {
-    return window.favoritesManager.isInFavorites(promptId);
-};
-
-window.toggleFavorite = function(prompt) {
-    const result = window.favoritesManager.toggleFavorite(prompt);
-    return result;
-};
-
-window.updateFavoriteIcon = function(button, isFavorite) {
-    const icon = button.querySelector('i');
-    if (isFavorite) {
-        icon.classList.remove('far');
-        icon.classList.add('fas');
-        button.title = '取消收藏';
+// 确保FavoritesManager类在全局作用域可用
+if (typeof window !== 'undefined') {
+    // 检查是否已经初始化
+    if (!window.favoritesManager) {
+        console.log('初始化收藏管理器...');
+        try {
+            // 创建并保存实例
+            const manager = new FavoritesManager();
+            
+            // 定义全局对象
+            window.favoritesManager = manager;
+            
+            // 检查实例是否有效
+            if (window.favoritesManager && typeof window.favoritesManager.isFavorite === 'function') {
+                console.log('收藏管理器初始化成功');
+            } else {
+                console.error('收藏管理器初始化后属性检查失败');
+            }
+            
+            // 添加全局辅助函数
+            window.isFavorite = function(promptId) {
+                return window.favoritesManager.isFavorite(promptId);
+            };
+            
+            window.toggleFavorite = function(prompt) {
+                return window.favoritesManager.toggleFavorite(prompt);
+            };
+            
+            window.updateFavoriteIcon = function(button, isFavorite) {
+                const icon = button.querySelector('i');
+                if (isFavorite) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    button.title = '取消收藏';
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    button.title = '收藏';
+                }
+            };
+        } catch (error) {
+            console.error('初始化收藏管理器失败:', error);
+        }
     } else {
-        icon.classList.remove('fas');
-        icon.classList.add('far');
-        button.title = '收藏';
+        console.log('收藏管理器已存在，跳过初始化');
     }
-}; 
+} 
