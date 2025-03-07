@@ -146,6 +146,44 @@ window.debugTools = {
                 this.checkFavoritesManager();
             }, 1000);
         });
+    },
+
+    // 工具函数：一键刷新所有缓存
+    clearAllCache: function() {
+        console.log('正在清除所有缓存...');
+        
+        try {
+            // 清除localStorage缓存
+            const preserveItems = ['favorites'];  // 保留的项目
+            const itemsToRemove = [];
+            
+            // 收集要删除的项目
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!preserveItems.includes(key)) {
+                    itemsToRemove.push(key);
+                }
+            }
+            
+            // 删除收集到的项目
+            itemsToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                console.log(`已删除localStorage项: ${key}`);
+            });
+            
+            // 添加刷新全部功能到控制台
+            console.log('添加全局刷新函数: window.refreshAll()');
+            window.refreshAll = function() {
+                console.log('正在强制刷新页面并清除缓存...');
+                window.location.reload(true);
+            };
+            
+            console.log('缓存清理完成，您可以在控制台执行 window.refreshAll() 来强制刷新页面');
+            return true;
+        } catch (error) {
+            console.error('清除缓存时出错:', error);
+            return false;
+        }
     }
 };
 

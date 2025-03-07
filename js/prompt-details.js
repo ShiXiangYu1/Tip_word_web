@@ -182,7 +182,7 @@ async function showPromptModal(prompt) {
     
     const enTitle = document.createElement('div');
     enTitle.className = 'section-title';
-    enTitle.textContent = '中文';
+    enTitle.textContent = 'English';
     
     // 如果是自动翻译，添加提示
     if (useAutoTranslation) {
@@ -246,7 +246,7 @@ async function showPromptModal(prompt) {
   // 绑定复制按钮事件
   if (copyZhBtn) {
     const copyZhHandler = () => {
-      copyToClipboard(contentZh.replace(/<br>/g, '\n'));
+      copyPromptText(contentZh.replace(/<br>/g, '\n'));
       showToast('已复制中文内容');
     };
     copyZhBtn.removeEventListener('click', copyZhHandler);
@@ -255,7 +255,7 @@ async function showPromptModal(prompt) {
   
   if (copyEnBtn) {
     const copyEnHandler = () => {
-      copyToClipboard(contentEn.replace(/<br>/g, '\n'));
+      copyPromptText(contentEn.replace(/<br>/g, '\n'));
       showToast('已复制英文内容');
     };
     copyEnBtn.removeEventListener('click', copyEnHandler);
