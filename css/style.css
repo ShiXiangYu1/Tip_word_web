@@ -419,6 +419,15 @@ button:hover {
     color: #e74c3c;
 }
 
+.card-actions .remove-btn {
+    background-color: #ff3b30;
+    color: white;
+}
+
+.card-actions .remove-btn:hover {
+    background-color: #d33025;
+}
+
 /* 收藏页面 */
 .favorites-container {
     padding: 20px;

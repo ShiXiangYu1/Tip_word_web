@@ -207,8 +207,8 @@ class FavoritesManager {
                     <button class="copy-btn" title="复制提示词">
                         <i class="fas fa-copy"></i> 复制
                     </button>
-                    <button class="favorite-btn active" title="取消收藏">
-                        <i class="fas fa-star"></i> 已收藏
+                    <button class="favorite-btn remove-btn active" title="取消收藏">
+                        <i class="fas fa-trash"></i> 删除
                     </button>
                 </div>
             `;
