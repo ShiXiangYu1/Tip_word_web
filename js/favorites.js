@@ -207,8 +207,9 @@ class FavoritesManager {
                     <button class="copy-btn" title="复制提示词">
                         <i class="fas fa-copy"></i> 复制
                     </button>
-                    <button class="favorite-btn remove-btn active" title="取消收藏">
-                        <i class="fas fa-trash"></i> 删除
+                    <button class="delete-favorite-btn" title="从收藏中移除" style="background-color:#ff3b30; color:white; display:flex; align-items:center; padding:5px 12px; border-radius:4px; font-weight:500; min-width:80px;">
+                        <i class="fas fa-trash" style="margin-right:5px;"></i>
+                        <span style="display:inline-block;">删除</span>
                     </button>
                 </div>
             `;
@@ -222,9 +223,9 @@ class FavoritesManager {
                 });
             }
             
-            const favoriteBtn = card.querySelector('.favorite-btn');
-            if (favoriteBtn) {
-                favoriteBtn.addEventListener('click', (e) => {
+            const deleteBtn = card.querySelector('.delete-favorite-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation(); // 防止事件冒泡
                     this.removeFromFavorites(prompt.id);
                 });

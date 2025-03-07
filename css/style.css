@@ -419,9 +419,31 @@ button:hover {
     color: #e74c3c;
 }
 
+/* 删除按钮专用样式 */
 .card-actions .remove-btn {
     background-color: #ff3b30;
-    color: white;
+    color: white !important; /* 强制文本颜色为白色 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 80px; /* 确保按钮宽度足够 */
+}
+
+.card-actions .remove-btn span {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.card-actions .remove-btn i {
+    font-size: 0.9em;
+    margin-right: 4px;
+    display: inline-block;
 }
 
 .card-actions .remove-btn:hover {
@@ -1019,4 +1041,38 @@ button:hover {
 
 .dark-theme .modal-footer {
     border-top: 1px solid #444;
+}
+
+/* 删除收藏按钮 */
+.delete-favorite-btn {
+    background-color: #ff3b30 !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    padding: 5px 12px !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+    text-align: center !important;
+    min-width: 80px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s !important;
+}
+
+.delete-favorite-btn:hover {
+    background-color: #d33025 !important;
+}
+
+.delete-favorite-btn i {
+    font-size: 0.9em !important;
+    margin-right: 4px !important;
+    display: inline-block !important;
+}
+
+.delete-favorite-btn span {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
 } 
