@@ -603,16 +603,29 @@ function copyPrompt(promptId) {
     if (!prompt) return;
     
     const text = prompt.content || prompt.text;
+    copyToClipboard(text);
+}
+
+// 复制内容到剪贴板
+function copyToClipboard(text) {
+    if (!text) {
+        showMessage('没有可复制的内容');
+        return;
+    }
     
     // 使用现代API复制文本
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text)
-            .then(() => showMessage('提示词已复制到剪贴板'))
+            .then(() => {
+                console.log('使用Clipboard API复制成功');
+                showMessage('内容已复制到剪贴板');
+            })
             .catch(err => {
-                console.error('复制失败:', err);
+                console.error('Clipboard API复制失败:', err);
                 fallbackCopy(text);
             });
     } else {
+        console.log('浏览器不支持Clipboard API，使用备用方法');
         fallbackCopy(text);
     }
 }
